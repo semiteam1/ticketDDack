@@ -1,4 +1,0 @@
-driver=oracle.jdbc.driver.OracleDriver
-url=jdbc:oracle:thin:@oracledb_low?TNS_ADMIN=/Library/dev/Wallet_ORACLEDB
-username=TICKET
-password=Tkh12345

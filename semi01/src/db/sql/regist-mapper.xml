@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<entry key="getMovieSelectBoxList">
+SELECT CATEGORY_TYPE, CATEGORY_NAME
+FROM CATEGORY_INFO
+WHERE CATEGORY_NAME LIKE '%(영화)'
+</entry>
+<entry key="getDisplaySelectBoxList">
+SELECT CATEGORY_TYPE, CATEGORY_NAME
+FROM CATEGORY_INFO
+WHERE CATEGORY_NAME LIKE '%(전시)'
+</entry>
+<entry key="getShowSelectBoxList">
+SELECT CATEGORY_TYPE, CATEGORY_NAME
+FROM CATEGORY_INFO
+WHERE CATEGORY_NAME LIKE '%(공연)'
+</entry>
+</properties>

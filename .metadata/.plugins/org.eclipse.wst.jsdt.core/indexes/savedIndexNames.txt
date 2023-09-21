@@ -1,8 +1,8 @@
-INDEX VERSION 1.4+C:\semi01_last\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
-2779722327.index
-83415650.index
-1519201473.index
-867796239.index
-3454507916.index
-3711169994.index
-2612112721.index
+INDEX VERSION 1.4+/Users/yoonjeasung/semi01_jsp/.metadata/.plugins/org.eclipse.wst.jsdt.core/indexes
+2359739337.index
+1219236049.index
+1419148642.index
+1808548308.index
+1541999890.index
+2016409825.index
+1524444749.index

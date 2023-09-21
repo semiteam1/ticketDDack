@@ -1,0 +1,808 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+<entry key="searchProduct">
+	SELECT 
+		   PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , ADDRESS
+	     , START_PERIOD
+	     , END_PERIOD
+	     , PRICE
+	     , IMAGE_PATH
+	     , POSTER_NAME
+	  FROM PRODUCT
+	  JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE PRODUCT_TITLE LIKE ?
+</entry>
+
+<entry key="selectProductDetail">
+	SELECT
+	       PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , SUBSTR(SUBSTR(ADDRESS, 0, INSTR(ADDRESS, '_', 1, 1)), 1, LENGTH(SUBSTR(ADDRESS, 0, INSTR(ADDRESS, '_', 1, 1)))-1) "ADDRESS"
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , LEVEL_NAME
+	     , RUN_TIME
+	     , PRICE
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	  FROM PRODUCT
+	  JOIN LEVEL_INFO USING(PRODUCT_LEVEL)
+	  JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE PRODUCT_NO = ?
+</entry>
+
+<entry key="selectProductIMG">
+SELECT 
+       PRODUCT_NO
+     , POSTER_NAME
+     , DETAIL1_NAME
+     , DETAIL2_NAME
+     , DETAIL3_NAME
+     , DETAIL4_NAME
+     , DETAIL5_NAME
+     , IMAGE_PATH
+  FROM PRODUCT_IMG
+ WHERE PRODUCT_NO = ?
+</entry>
+
+<entry key="selectProductTotalRank">
+	SELECT
+	       R.PRODUCT_NO,
+	       R.PRODUCT_TITLE,
+	       TO_CHAR(R.START_PERIOD, 'YYYY/MM/DD') "START_PERIOD",
+	       TO_CHAR(R.END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	  FROM 
+	     (
+	SELECT
+	       P.PRODUCT_NO,
+	       P.PRODUCT_TITLE,
+	       P.START_PERIOD,
+	       P.END_PERIOD,
+	       COUNT(PL.USER_NO) AS "좋아요_수"
+	  FROM
+	       PRODUCT_LIKE PL
+	  JOIN
+	       PRODUCT P
+	    ON
+	       PL.PRODUCT_NO = P.PRODUCT_NO
+	 GROUP BY
+	       P.PRODUCT_NO,
+	       P.PRODUCT_TITLE,
+	       P.START_PERIOD,
+	       P.END_PERIOD
+	 ORDER BY
+	       "좋아요_수" DESC,
+	       PRODUCT_TITLE ASC
+	     ) R
+	<![CDATA[WHERE ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductTotalRankIMG">
+	SELECT
+	       R.PRODUCT_NO,
+	       R.POSTER_NAME,
+	       R.DETAIL1_NAME,
+	       R.DETAIL2_NAME,
+	       R.DETAIL3_NAME,
+	       R.DETAIL4_NAME,
+	       R.DETAIL5_NAME,
+	       R.IMAGE_PATH
+	 FROM
+	    (
+   SELECT
+	      PI.PRODUCT_NO,
+	      P.PRODUCT_TITLE,
+	      PI.POSTER_NAME,
+	      PI.DETAIL1_NAME,
+	      PI.DETAIL2_NAME,
+	      PI.DETAIL3_NAME,
+	      PI.DETAIL4_NAME,
+	      PI.DETAIL5_NAME,
+	      PI.IMAGE_PATH,
+	      COUNT(PL.USER_NO) AS "좋아요_수"
+	 FROM
+	      PRODUCT_LIKE PL
+	 JOIN
+	      PRODUCT_IMG PI
+	   ON
+	      PL.PRODUCT_NO = PI.PRODUCT_NO
+	 JOIN
+	      PRODUCT P
+	   ON
+	      P.PRODUCT_NO = PI.PRODUCT_NO
+	GROUP BY
+	      PI.PRODUCT_NO,
+	      P.PRODUCT_TITLE,
+	      PI.POSTER_NAME,
+  	      PI.DETAIL1_NAME,
+	      PI.DETAIL2_NAME,
+	      PI.DETAIL3_NAME,
+	      PI.DETAIL4_NAME,
+	      PI.DETAIL5_NAME,
+	      PI.IMAGE_PATH
+	ORDER BY
+	      "좋아요_수" DESC,
+	      PRODUCT_TITLE ASC
+	        ) R
+<![CDATA[WHERE ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectScreeningInfo">
+	SELECT 
+	       PRODUCT_NO
+	     , SCREENING_DATE
+	     , SCREENING_DAY_TIME
+	     , SCREENING_NIGHT_TIME
+	     , SCREENING_DAY_SEAT
+	     , SCREENING_NIGHT_SEAT
+	  FROM SCREENING_INFO
+	 WHERE PRODUCT_NO = ?
+</entry>
+
+<entry key="selectProductDisplayRank">
+	 SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+		 , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN USER_INFO U ON ( CATEGORY_TYPE = U.INTEREST_DISPLAY)
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE USER_NO = ?
+	 <![CDATA[AND ROWNUM <3]]>
+</entry>
+
+<entry key="selectProductMovieRank">
+	 SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN USER_INFO U ON ( CATEGORY_TYPE = U.INTEREST_MOVIE)
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE USER_NO = ?
+	 <![CDATA[AND ROWNUM <3]]>
+</entry>
+
+<entry key="selectProductShowRank">
+	 SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN USER_INFO U ON ( CATEGORY_TYPE = U.INTEREST_SHOW)
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE USER_NO = ?
+	 <![CDATA[AND ROWNUM <3]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank1">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 1
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank2">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 2
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank3">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 3
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank4">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 4
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank5">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 5
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank6">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 6
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank7">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 7
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank8">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 8
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank9">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 9
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank10">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 10
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank11">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 11
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectProductCategoryTotalRank12">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE = 12
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectExpectedMovie">
+	SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+	 WHERE CATEGORY_TYPE in(?,?,?,?)
+       AND START_PERIOD > SYSDATE
+    <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectTotalMovieList">
+    SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM PRODUCT
+     JOIN PRODUCT_IMG USING(PRODUCT_NO)
+    WHERE CATEGORY_TYPE IN (?,?,?,?)
+</entry>
+
+<entry key="selectExpectedMovieRomanceList">
+    SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	  FROM (
+    SELECT *
+      FROM PRODUCT P
+      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+      JOIN LOCAL_INFO USING (LOCAL_NO)
+      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+     WHERE PRODUCT_NO 
+        IN (
+           SELECT PRODUCT_NO
+             FROM (
+           SELECT
+                  PRODUCT_NO
+                , COUNT(USER_NO) AS "좋아요_수"
+            FROM PRODUCT_LIKE
+           GROUP BY
+                 PRODUCT_NO
+           ORDER BY
+                 좋아요_수 DESC)))
+ JOIN PRODUCT_IMG USING(PRODUCT_NO)
+ WHERE CATEGORY_TYPE = ?
+      AND START_PERIOD > SYSDATE
+   <![CDATA[AND ROWNUM <= 5]]>
+</entry>
+
+<entry key="selectTotalMovieRomanceList">
+    SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM PRODUCT
+     JOIN PRODUCT_IMG USING(PRODUCT_NO)
+    WHERE CATEGORY_TYPE = ?
+</entry>
+
+<entry key="insertLike">
+	INSERT
+	  INTO PRODUCT_LIKE
+	     (
+	       PRODUCT_NO
+	     , USER_NO  
+	     )
+	VALUES
+	     (
+	       ?
+	     , ?  
+	     )
+</entry>
+
+<entry key="deleteLike">
+	DELETE
+	  FROM PRODUCT_LIKE
+	 WHERE PRODUCT_NO = ?
+	   AND USER_NO = ?
+</entry>
+
+<entry key="selectLike">
+	SELECT 
+		   PRODUCT_NO
+		 , USER_NO  
+	  FROM PRODUCT_LIKE
+	 WHERE PRODUCT_NO = ?
+	   AND USER_NO = ?
+</entry>
+
+<entry key="selectDaySeat">
+	SELECT 
+	       SCREENING_DAY_SEAT "seat"
+	  FROM SCREENING_INFO
+	 WHERE PRODUCT_NO = ?
+	   AND TO_CHAR(SCREENING_DATE, 'RRRR-MM-DD') = ?
+</entry>
+
+<entry key="selectNightSeat">
+	SELECT 
+	       SCREENING_NIGHT_SEAT "seat"
+	  FROM SCREENING_INFO
+	 WHERE PRODUCT_NO = ?
+	   AND TO_CHAR(SCREENING_DATE, 'RRRR-MM-DD') = ?
+</entry>
+
+<entry key="ProductLocationListController">
+    SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM PRODUCT
+     JOIN PRODUCT_IMG USING(PRODUCT_NO)
+    WHERE LOCAL_NO = ?
+</entry>
+
+<entry key="selectProductEditor">
+	SELECT PRODUCT_NO
+		 , EDITOR
+		 , DEIT_COMMENT
+	  FROM EDITOR
+	 WHERE PRODUCT_NO = ?
+</entry>
+
+<entry key="selectProductRank">
+	SELECT
+		   PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , ADDRESS
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , PRICE
+	     , IMAGE_PATH
+	     , POSTER_NAME
+	 FROM (
+	    SELECT *
+	      FROM PRODUCT P
+	      JOIN CATEGORY_INFO USING(CATEGORY_TYPE)
+	      JOIN LOCAL_INFO USING (LOCAL_NO)
+	      JOIN LEVEL_INFO USING (PRODUCT_LEVEL)
+	     WHERE PRODUCT_NO 
+	        IN (
+	           SELECT PRODUCT_NO
+	             FROM (
+	           SELECT
+	                  PRODUCT_NO
+	                , COUNT(USER_NO) AS "좋아요_수"
+	            FROM PRODUCT_LIKE
+	           GROUP BY
+	                 PRODUCT_NO
+	           ORDER BY
+	                 좋아요_수 DESC)))
+	 JOIN PRODUCT_IMG USING(PRODUCT_NO)
+    <![CDATA[WHERE ROWNUM <= 10]]>
+</entry>
+
+<entry key="selectLocationProduct">
+        SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM PRODUCT
+     JOIN PRODUCT_IMG USING(PRODUCT_NO)
+     JOIN LOCAL_INFO USING(LOCAL_NO)
+    WHERE LOCAL_NO = ?
+</entry>
+
+<entry key="selectLocationTotalProduct">
+        SELECT PRODUCT_NO
+	     , PRODUCT_TITLE
+	     , TO_CHAR(START_PERIOD, 'YYYY/MM/DD') "START_PERIOD"
+	     , TO_CHAR(END_PERIOD, 'YYYY/MM/DD') "END_PERIOD"
+	     , POSTER_NAME
+	     , IMAGE_PATH
+	 FROM PRODUCT
+     JOIN PRODUCT_IMG USING(PRODUCT_NO)
+     JOIN LOCAL_INFO USING(LOCAL_NO)
+</entry>
+
+</properties>

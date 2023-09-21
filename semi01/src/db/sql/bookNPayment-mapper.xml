@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+<entry key="insertBook">
+	INSERT
+	  INTO BOOKED_INFO
+	     (
+	       BOOKED_NO
+	     , USER_NO
+	     , PRODUCT_NO
+	     , AUDIENCE
+	     , PAYMENT
+	     , CARD
+	     , SCREEN_DATE
+	     , SCREEN_TIME
+	     )
+	VALUES
+	     (
+	       SEQ_DNO.NEXTVAL
+	     , ?
+	     , ?
+	     , ?
+	     , ?
+	     , ?
+	     , ?
+	     , ?
+	     )
+</entry>
+
+<entry key="decreaseDaySeatCount">
+	UPDATE SCREENING_INFO
+	   SET SCREENING_DAY_SEAT = SCREENING_DAY_SEAT - ?
+	 WHERE PRODUCT_NO = ?
+	   AND SCREENING_DATE = ?
+</entry>
+
+<entry key="decreaseNightSeatCount">
+	UPDATE SCREENING_INFO
+	   SET SCREENING_NIGHT_SEAT = SCREENING_NIGHT_SEAT - ?
+	 WHERE PRODUCT_NO = ?
+	   AND SCREENING_DATE = ?
+</entry>
+
+</properties>
